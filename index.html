@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>兒童數學快答大冒險 45s Kids Math Challenge</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fluent playful sans fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body {
+            font-family: 'Fredoka', 'Noto Sans TC', sans-serif;
+            touch-action: manipulation;
+            background: linear-gradient(135deg, #fef3c7 0%, #e0f2fe 50%, #fbcfe8 100%);
+        }
+        
+        /* Floating background decoration animation */
+        @keyframes float-bg {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+        .animate-float {
+            animation: float-bg 4s ease-in-out infinite;
+        }
+        
+        @keyframes pop-in {
+            0% { transform: scale(0.7); opacity: 0; }
+            80% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop-in {
+            animation: pop-in 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(245, 158, 11, 0.9); }
+        }
+        .glow-card {
+            animation: pulse-glow 3s infinite ease-in-out;
+        }
+
+        /* iPad optimized 3D tactile push buttons */
+        .btn-kids {
+            transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 0 rgba(0,0,0,0.18);
+            cursor: pointer;
+        }
+        .btn-kids:active {
+            transform: translateY(6px) !important;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.18) !important;
+        }
+        
+        .btn-option {
+            box-shadow: 0 6px 0 #CBD5E1;
+        }
+        .btn-option:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #CBD5E1;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between items-center p-3 md:p-6 relative overflow-x-hidden">
+
+    <!-- Playful Background Floating Elements for Kids -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-40">
+        <div class="absolute top-5 left-5 text-5xl animate-float" style="animation-delay: 0s;">☁️</div>
+        <div class="absolute top-1/4 right-8 text-6xl animate-float" style="animation-delay: 1s;">⭐️</div>
+        <div class="absolute bottom-10 left-8 text-6xl animate-float" style="animation-delay: 2s;">🎈</div>
+        <div class="absolute bottom-1/3 right-12 text-5xl animate-float" style="animation-delay: 1.5s;">🎨</div>
+        <div class="absolute top-1/2 left-4 text-5xl animate-float" style="animation-delay: 0.5s;">🍎</div>
+    </div>
+
+    <!-- Top Header -->
+    <header class="w-full max-w-2xl flex justify-between items-center mb-3 px-2 z-10">
+        <div class="flex items-center gap-3 bg-white/80 backdrop-blur-md px-4 py-2 rounded-2xl shadow-sm border-2 border-amber-300">
+            <span class="text-3xl md:text-4xl animate-bounce">🧮</span>
+            <div>
+                <h1 class="text-xl md:text-3xl font-black text-amber-600 tracking-wide">數學快答大冒險</h1>
+                <p class="text-xs font-bold text-amber-800/70">45 秒極速挑戰賽</p>
+            </div>
+        </div>
+        
+        <button id="soundToggleBtn" type="button" onclick="toggleSound()" class="btn-kids bg-white border-4 border-amber-300 px-4 py-2 rounded-2xl text-2xl hover:bg-amber-50">
+            🔊
+        </button>
+    </header>
+
+    <main class="w-full max-w-2xl flex-1 flex flex-col justify-center items-center my-auto z-10">
+
+        <!-- ================= START SCREEN ================= -->
+        <div id="startScreen" class="w-full bg-white/95 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-2xl border-4 border-amber-300 text-center animate-pop-in glow-card">
+            
+            <div class="inline-block bg-amber-100 text-amber-800 font-extrabold text-sm px-4 py-1 rounded-full mb-3 shadow-inner">
+                適合 4 - 9 歲小朋友練習
+            </div>
+
+            <h2 class="text-3xl md:text-4xl font-black text-slate-800 mb-2">準備好接受挑戰了嗎？</h2>
+            <p class="text-slate-600 mb-6 text-base md:text-lg font-bold">請點擊選擇挑戰程度：</p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <!-- Group 1: K3 & P1 Button -->
+                <button type="button" onclick="selectLevel('k3_p1')" id="btnLevel1" class="btn-kids p-5 bg-gradient-to-b from-amber-300 to-amber-400 hover:from-amber-400 hover:to-amber-500 rounded-3xl border-4 border-amber-500 text-amber-950 flex flex-col items-center justify-center gap-2 ring-4 ring-amber-500 scale-105">
+                    <span class="text-5xl">🐣</span>
+                    <span class="text-2xl font-black">K3 及 小一組</span>
+                    <span class="text-xs font-bold bg-white/80 px-3 py-1.5 rounded-xl text-amber-900 border border-amber-300 shadow-sm">
+                        10以內加減 • 基本圖形與邊數 • 果實數數
+                    </span>
+                </button>
+
+                <!-- Group 2: P2 & P3 Button -->
+                <button type="button" onclick="selectLevel('p2_p3')" id="btnLevel2" class="btn-kids p-5 bg-gradient-to-b from-sky-200 to-sky-300 hover:from-sky-300 hover:to-sky-400 rounded-3xl border-4 border-sky-400 text-sky-950 flex flex-col items-center justify-center gap-2">
+                    <span class="text-5xl">🦁</span>
+                    <span class="text-2xl font-black">小二 及 小三組</span>
+                    <span class="text-xs font-bold bg-white/80 px-3 py-1.5 rounded-xl text-sky-900 border border-sky-300 shadow-sm">
+                        20以內加減填空 • 連加法與圖像分組 • 多邊形特徵
+                    </span>
+                </button>
+            </div>
+
+            <button type="button" onclick="startGame()" class="btn-kids w-full py-5 bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-white font-black text-2xl md:text-3xl rounded-3xl border-b-8 border-emerald-700 shadow-xl tracking-wider active:translate-y-1">
+                🚀 開始挑戰！ (45 秒)
+            </button>
+        </div>
+
+        <!-- ================= GAMEPLAY SCREEN ================= -->
+        <div id="gameScreen" class="hidden w-full flex-col gap-4">
+            
+            <!-- HUD Status Bar -->
+            <div class="bg-white/95 backdrop-blur-md rounded-2xl p-3 md:p-4 shadow-lg border-4 border-amber-200 flex justify-between items-center">
+                
+                <!-- Score Indicator -->
+                <div class="flex items-center gap-2">
+                    <span class="text-3xl">🏆</span>
+                    <div>
+                        <div class="text-xs text-slate-400 font-extrabold uppercase tracking-wide">目前得分</div>
+                        <div id="scoreDisplay" class="text-3xl font-black text-amber-500">0</div>
+                    </div>
+                </div>
+
+                <!-- Combo Badge -->
+                <div id="comboBadge" class="hidden flex-col items-center bg-orange-100 border-2 border-orange-400 px-3 py-1 rounded-2xl animate-bounce">
+                    <span class="text-[10px] font-black text-orange-600 uppercase">連續答對</span>
+                    <span id="comboText" class="text-xl md:text-2xl font-black text-orange-600">🔥 x2</span>
+                </div>
+
+                <!-- Timer Section -->
+                <div class="flex items-center gap-3">
+                    <div class="text-right">
+                        <div class="text-xs text-slate-400 font-extrabold uppercase">剩餘時間</div>
+                        <div id="timerText" class="text-3xl font-black text-rose-500">45s</div>
+                    </div>
+                    <div class="w-16 md:w-28 bg-slate-100 h-5 rounded-full overflow-hidden border-2 border-slate-300 p-0.5">
+                        <div id="timerBar" class="bg-rose-500 h-full w-full rounded-full transition-all duration-100 ease-linear"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question Display Card -->
+            <div class="bg-white rounded-3xl p-5 md:p-6 shadow-xl border-4 border-amber-300 min-h-[260px] flex flex-col justify-center items-center text-center relative overflow-hidden">
+                
+                <!-- Flash Feedback Overlay -->
+                <div id="feedbackOverlay" class="absolute inset-0 flex flex-col items-center justify-center text-5xl font-black bg-white/95 opacity-0 pointer-events-none transition-opacity duration-300 z-20 p-4">
+                    <span id="feedbackEmoji" class="text-6xl mb-1">✨</span>
+                    <span id="feedbackText" class="text-emerald-500">正確！</span>
+                    <span id="feedbackSubtext" class="text-xl font-extrabold text-slate-700 mt-2"></span>
+                </div>
+
+                <!-- Question Category Badge -->
+                <div id="questionCategory" class="text-xs md:text-sm font-extrabold text-amber-800 bg-amber-100 border border-amber-300 px-4 py-1 rounded-full mb-3 shadow-sm">
+                    圖形辨識
+                </div>
+
+                <!-- Main Prompt Text -->
+                <div id="questionPrompt" class="text-2xl md:text-3xl font-black text-slate-800 mb-2 flex flex-wrap items-center justify-center min-h-[60px] w-full text-center leading-normal gap-1">
+                    <!-- Dynamic Text -->
+                </div>
+
+                <!-- Visual Interactive Area -->
+                <div id="visualArea" class="w-full flex justify-center items-center my-1 min-h-[90px]">
+                    <!-- SVGs or Emoji Icons -->
+                </div>
+            </div>
+
+            <!-- Options Grid (2x2) -->
+            <div id="optionsGrid" class="grid grid-cols-2 gap-3 md:gap-4">
+                <!-- 4 Interactive Kids Buttons generated by JS -->
+            </div>
+        </div>
+
+        <!-- ================= RESULT SCREEN ================= -->
+        <div id="resultScreen" class="hidden w-full bg-white/95 backdrop-blur-md rounded-3xl p-6 md:p-8 shadow-2xl border-4 border-amber-300 text-center animate-pop-in">
+            <div id="starRating" class="text-6xl mb-2">⭐⭐⭐</div>
+            <h2 id="resultTitle" class="text-3xl md:text-4xl font-black text-amber-600 mb-1">太棒了！數學小天才！</h2>
+            <p id="resultSubtitle" class="text-slate-500 font-bold mb-6">45 秒時間到，來看看你的精彩表現：</p>
+
+            <div class="grid grid-cols-2 gap-3 md:gap-4 mb-6 text-left">
+                <div class="bg-amber-50 p-4 rounded-2xl border-2 border-amber-200 shadow-sm">
+                    <div class="text-xs text-amber-700 font-extrabold">總得分</div>
+                    <div id="finalScore" class="text-3xl md:text-4xl font-black text-amber-600">0</div>
+                </div>
+                <div class="bg-sky-50 p-4 rounded-2xl border-2 border-sky-200 shadow-sm">
+                    <div class="text-xs text-sky-700 font-extrabold">答對題數</div>
+                    <div id="finalCorrect" class="text-3xl md:text-4xl font-black text-sky-600">0 / 0</div>
+                </div>
+                <div class="bg-emerald-50 p-4 rounded-2xl border-2 border-emerald-200 shadow-sm">
+                    <div class="text-xs text-emerald-700 font-extrabold">最高連勝</div>
+                    <div id="finalMaxCombo" class="text-3xl md:text-4xl font-black text-emerald-600">0 次</div>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-2xl border-2 border-purple-200 shadow-sm">
+                    <div class="text-xs text-purple-700 font-extrabold">答題正確率</div>
+                    <div id="finalAccuracy" class="text-3xl md:text-4xl font-black text-purple-600">100%</div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button type="button" onclick="restartGame()" class="btn-kids flex-1 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xl rounded-2xl border-b-6 border-emerald-700 shadow-lg">
+                    🔄 再玩一次
+                </button>
+                <button type="button" onclick="backToMenu()" class="btn-kids flex-1 py-4 bg-slate-200 hover:bg-slate-300 text-slate-700 font-black text-xl rounded-2xl border-b-6 border-slate-400">
+                    🏠 重選組別
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-4 text-center text-xs font-extrabold text-amber-900/60 z-10">
+        專為 K3 及初小學生設計 • 趣味數學快答訓練
+    </footer>
+
+    <script>
+        /* Web Audio API Synthesizer for Sound Effects (iOS iPad Friendly) */
+        let audioCtx = null;
+        let isMuted = false;
+        let isAnswering = false;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // Unlock audio on touch anywhere for iPad Safari
+        window.addEventListener('touchstart', function() {
+            initAudio();
+        }, { once: true });
+
+        function playSound(type) {
+            if (isMuted) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'correct') {
+                    // Happy high chime
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.15); // G5
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'wrong') {
+                    // Low buzz
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now); // A3
+                    osc.frequency.linearRampToValueAtTime(130, now + 0.2);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'combo') {
+                    // Arpeggio
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(587.33, now); // D5
+                    osc.frequency.setValueAtTime(880, now + 0.1); // A5
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'gameover') {
+                    // Fanfare
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(554.37, now + 0.15);
+                    osc.frequency.setValueAtTime(659.25, now + 0.3);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                    osc.start(now);
+                    osc.stop(now + 0.6);
+                }
+            } catch(e) {
+                console.log("Audio play error", e);
+            }
+        }
+
+        function toggleSound() {
+            isMuted = !isMuted;
+            document.getElementById('soundToggleBtn').innerText = isMuted ? '🔇' : '🔊';
+        }
+
+        /* Game State & Data */
+        const GAME_DURATION = 45;
+        let selectedLevel = 'k3_p1'; // 'k3_p1' or 'p2_p3'
+        let score = 0;
+        let combo = 0;
+        let maxCombo = 0;
+        let correctAnswers = 0;
+        let totalQuestions = 0;
+        let timeLeft = GAME_DURATION;
+        let timerInterval = null;
+        let currentQuestion = null;
+
+        // Shape SVG Definitions
+        const SHAPES = {
+            circle: { name: '圓形', sides: 0, svg: `<circle cx="50" cy="50" r="38" fill="#3B82F6" stroke="#1D4ED8" stroke-width="4"/>` },
+            square: { name: '正方形', sides: 4, svg: `<rect x="15" y="15" width="70" height="70" rx="8" fill="#EF4444" stroke="#B91C1C" stroke-width="4"/>` },
+            triangle: { name: '三角形', sides: 3, svg: `<polygon points="50,10 90,85 10,85" fill="#10B981" stroke="#047857" stroke-width="4"/>` },
+            star: { name: '星形', sides: 10, svg: `<polygon points="50,5 64,36 98,36 70,57 81,91 50,70 19,91 30,57 2,36 36,36" fill="#F59E0B" stroke="#B45309" stroke-width="3"/>` },
+            heart: { name: '心形', sides: 0, svg: `<path d="M12,21.35l-1.45-1.32C5.4,15.36,2,12.28,2,8.5C2,5.42,4.42,3,7.5,3c1.74,0,3.41,0.81,4.5,2.09C13.09,3.81,14.76,3,16.5,3C19.58,3,22,5.42,22,8.5c0,3.78-3.4,6.86-8.55,11.54L12,21.35Z" fill="#EC4899" stroke="#BE185D" stroke-width="1.5" transform="scale(3.5) translate(1,1)"/>` },
+            rectangle: { name: '長方形', sides: 4, svg: `<rect x="8" y="25" width="84" height="50" rx="8" fill="#8B5CF6" stroke="#6D28D9" stroke-width="4"/>` },
+            oval: { name: '橢圓形', sides: 0, svg: `<ellipse cx="50" cy="50" rx="42" ry="26" fill="#06B6D4" stroke="#0E7490" stroke-width="4"/>` },
+            diamond: { name: '菱形', sides: 4, svg: `<polygon points="50,8 88,50 50,92 12,50" fill="#F97316" stroke="#C2410C" stroke-width="4"/>` },
+            pentagon: { name: '五邊形', sides: 5, svg: `<polygon points="50,10 90,38 75,85 25,85 10,38" fill="#14B8A6" stroke="#0F766E" stroke-width="4"/>` },
+            hexagon: { name: '六邊形', sides: 6, svg: `<polygon points="50,8 85,28 85,72 50,92 15,72 15,28" fill="#6366F1" stroke="#4338CA" stroke-width="4"/>` }
+        };
+
+        const FRUITS = ['🍎', '🍌', '🍓', '🍊', '🍇', '🐶', '🐱', '⭐️', '🎈'];
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function selectLevel(level) {
+            selectedLevel = level;
+            const btn1 = document.getElementById('btnLevel1');
+            const btn2 = document.getElementById('btnLevel2');
+
+            if (level === 'k3_p1') {
+                btn1.classList.add('ring-4', 'ring-amber-500', 'scale-105', 'from-amber-300', 'to-amber-400');
+                btn1.classList.remove('from-amber-200', 'to-amber-300');
+                btn2.classList.remove('ring-4', 'ring-sky-500', 'scale-105', 'from-sky-300', 'to-sky-400');
+                btn2.classList.add('from-sky-200', 'to-sky-300');
+            } else {
+                btn2.classList.add('ring-4', 'ring-sky-500', 'scale-105', 'from-sky-300', 'to-sky-400');
+                btn2.classList.remove('from-sky-200', 'to-sky-300');
+                btn1.classList.remove('ring-4', 'ring-amber-500', 'scale-105', 'from-amber-300', 'to-amber-400');
+                btn1.classList.add('from-amber-200', 'to-amber-300');
+            }
+            playSound('correct');
+        }
+
+        function generateQuestion() {
+            const typeChoice = Math.random();
+
+            if (selectedLevel === 'k3_p1') {
+                // K3 & P1 Questions
+                if (typeChoice < 0.45) {
+                    return generate10Math();
+                } else if (typeChoice < 0.70) {
+                    return generateShapeIdentification(['circle', 'square', 'triangle', 'rectangle', 'star', 'heart', 'oval', 'diamond']);
+                } else if (typeChoice < 0.85) {
+                    return generateShapeSidesQuestion(['triangle', 'square', 'rectangle']);
+                } else {
+                    return generateObjectCounting(8);
+                }
+            } else {
+                // P2 & P3 Questions
+                if (typeChoice < 0.35) {
+                    return generateAdvancedMath();
+                } else if (typeChoice < 0.65) {
+                    return generateRepeatedAddition();
+                } else if (typeChoice < 0.85) {
+                    return generateShapeSidesQuestion(['triangle', 'square', 'rectangle', 'pentagon', 'hexagon']);
+                } else {
+                    return generateMixedCounting();
+                }
+            }
+        }
+
+        /* Question Types Logic */
+        function generate10Math() {
+            const isAddition = Math.random() < 0.6;
+            let num1, num2, ans, promptText, visualHTML;
+            const fruit = FRUITS[getRandomInt(0, FRUITS.length - 1)];
+
+            if (isAddition) {
+                num1 = getRandomInt(1, 7);
+                num2 = getRandomInt(1, 10 - num1);
+                ans = num1 + num2;
+                promptText = `<div class="flex items-center gap-2">${num1} + ${num2} = <span class="text-amber-500">?</span></div>`;
+                visualHTML = `<div class="flex flex-wrap items-center justify-center gap-2 bg-amber-50 p-3 rounded-2xl border-2 border-amber-200 max-w-sm">
+                                <span class="text-3xl">${fruit.repeat(num1)}</span>
+                                <span class="text-2xl font-black text-slate-400">+</span>
+                                <span class="text-3xl">${fruit.repeat(num2)}</span>
+                             </div>`;
+            } else {
+                num1 = getRandomInt(2, 10);
+                num2 = getRandomInt(1, num1);
+                ans = num1 - num2;
+                promptText = `<div class="flex items-center gap-2">${num1} - ${num2} = <span class="text-amber-500">?</span></div>`;
+                visualHTML = `<div class="text-slate-500 font-extrabold text-base">算算看，剩下多少個？</div>`;
+            }
+
+            const options = new Set([ans]);
+            while(options.size < 4) {
+                let fake = ans + getRandomInt(-3, 3);
+                if (fake >= 0 && fake <= 12 && fake !== ans) options.add(fake);
+            }
+
+            return {
+                category: '10以內加減法',
+                prompt: promptText,
+                visual: visualHTML,
+                answer: ans,
+                options: shuffleArray([...options]),
+                renderOption: (opt) => `<span class="text-3xl font-black">${opt}</span>`
+            };
+        }
+
+        function generateAdvancedMath() {
+            const mode = Math.random();
+            let promptText, ans;
+
+            if (mode < 0.4) {
+                const n1 = getRandomInt(6, 18);
+                const n2 = getRandomInt(3, 12);
+                ans = n1 + n2;
+                promptText = `${n1} + ${n2} = ?`;
+            } else if (mode < 0.7) {
+                const n1 = getRandomInt(12, 28);
+                const n2 = getRandomInt(3, n1 - 1);
+                ans = n1 - n2;
+                promptText = `${n1} - ${n2} = ?`;
+            } else {
+                const total = getRandomInt(10, 20);
+                const known = getRandomInt(2, total - 1);
+                ans = total - known;
+                promptText = `${known} + <span class="text-amber-500">?</span> = ${total}`;
+            }
+
+            const options = new Set([ans]);
+            while(options.size < 4) {
+                let fake = ans + getRandomInt(-4, 4);
+                if (fake >= 0 && fake !== ans) options.add(fake);
+            }
+
+            return {
+                category: '進階加減與填空',
+                prompt: `<span class="text-3xl md:text-4xl font-black text-slate-800">${promptText}</span>`,
+                visual: `<div class="text-slate-400 font-extrabold text-sm">請選出正確的算式解答：</div>`,
+                answer: ans,
+                options: shuffleArray([...options]),
+                renderOption: (opt) => `<span class="text-3xl font-black">${opt}</span>`
+            };
+        }
+
+        function generateRepeatedAddition() {
+            //每組數量 (2 至 5 個) 與 組數 (2 至 4 組)，非常適合快答
+            const perGroup = getRandomInt(2, 5);
+            const groupCount = getRandomInt(2, 4);
+            const ans = perGroup * groupCount;
+            const fruit = FRUITS[getRandomInt(0, FRUITS.length - 1)];
+
+            const mode = Math.random();
+            let promptText, visualHTML;
+
+            if (mode < 0.5) {
+                // 題型 A：純算式連加法 (如 4 + 4 + 4 = ?)
+                const terms = Array(groupCount).fill(perGroup).join(' + ');
+                promptText = `<span class="text-3xl md:text-4xl font-black text-slate-800">${terms} = <span class="text-amber-500">?</span></span>`;
+                visualHTML = `<div class="text-slate-500 font-extrabold text-sm">連加法算算看：${groupCount} 個 ${perGroup} 相加是多少？</div>`;
+            } else {
+                // 題型 B：圖像分組連加 (如 3 組蘋果，每組 4 個)
+                let groupCards = '';
+                for (let i = 0; i < groupCount; i++) {
+                    groupCards += `<div class="bg-amber-100/90 border-2 border-amber-300 rounded-xl p-2 flex items-center justify-center text-2xl shadow-sm">${fruit.repeat(perGroup)}</div>`;
+                }
+                const terms = Array(groupCount).fill(perGroup).join(' + ');
+                promptText = `每組有 ${perGroup} 個，共有 ${groupCount} 組：<br><span class="text-amber-600 font-black">${terms} = ?</span>`;
+                visualHTML = `<div class="flex flex-wrap justify-center items-center gap-2 max-w-sm">${groupCards}</div>`;
+            }
+
+            const options = new Set([ans]);
+            while(options.size < 4) {
+                let fake = ans + getRandomInt(-3, 3);
+                if (fake > 0 && fake !== ans) options.add(fake);
+            }
+
+            return {
+                category: '連加法與圖像分組',
+                prompt: promptText,
+                visual: visualHTML,
+                answer: ans,
+                options: shuffleArray([...options]),
+                renderOption: (opt) => `<span class="text-3xl font-black">${opt}</span>`
+            };
+        }
+
+        function generateObjectCounting(maxCount) {
+            const count = getRandomInt(2, maxCount);
+            const item = FRUITS[getRandomInt(0, FRUITS.length - 1)];
+
+            const options = new Set([count]);
+            while(options.size < 4) {
+                let fake = count + getRandomInt(-2, 2);
+                if (fake > 0 && fake !== count) options.add(fake);
+            }
+
+            let iconsHTML = '';
+            for(let i = 0; i < count; i++) {
+                iconsHTML += `<span class="text-4xl hover:scale-110 transition-transform">${item}</span>`;
+            }
+
+            return {
+                category: '趣味數數',
+                prompt: `數一數，圖中有多少個 ${item} ？`,
+                visual: `<div class="flex flex-wrap justify-center gap-2 max-w-xs bg-sky-50 p-3 rounded-2xl border-2 border-sky-200">${iconsHTML}</div>`,
+                answer: count,
+                options: shuffleArray([...options]),
+                renderOption: (opt) => `<span class="text-3xl font-black">${opt}</span>`
+            };
+        }
+
+        function generateShapeIdentification(allowedKeys) {
+            const key = allowedKeys[getRandomInt(0, allowedKeys.length - 1)];
+            const targetShape = SHAPES[key];
+            const askMode = Math.random() < 0.5 ? 'name' : 'pick';
+
+            if (askMode === 'name') {
+                const options = new Set([targetShape.name]);
+                while(options.size < 4) {
+                    let k = allowedKeys[getRandomInt(0, allowedKeys.length - 1)];
+                    options.add(SHAPES[k].name);
+                }
+
+                return {
+                    category: '圖形辨識',
+                    prompt: `這個圖形叫什麼名字？`,
+                    visual: `<svg width="95" height="95" viewBox="0 0 100 100" class="drop-shadow-md animate-bounce">${targetShape.svg}</svg>`,
+                    answer: targetShape.name,
+                    options: shuffleArray([...options]),
+                    renderOption: (opt) => `<span class="text-xl md:text-2xl font-black">${opt}</span>`
+                };
+            } else {
+                const shapeKeys = new Set([key]);
+                while(shapeKeys.size < 4) {
+                    let k = allowedKeys[getRandomInt(0, allowedKeys.length - 1)];
+                    shapeKeys.add(k);
+                }
+
+                return {
+                    category: '圖形辨識',
+                    prompt: `哪一個是<span class="inline-block whitespace-nowrap text-amber-600">【${targetShape.name}】</span>？`,
+                    visual: `<div class="text-slate-400 font-extrabold text-sm">點擊下方正確的圖形：</div>`,
+                    answer: key,
+                    options: shuffleArray([...shapeKeys]),
+                    renderOption: (optKey) => `<svg width="65" height="65" viewBox="0 0 100 100">${SHAPES[optKey].svg}</svg>`
+                };
+            }
+        }
+
+        function generateShapeSidesQuestion(allowedKeys) {
+            const keys = allowedKeys || ['triangle', 'square', 'rectangle', 'pentagon', 'hexagon'];
+            const key = keys[getRandomInt(0, keys.length - 1)];
+            const shape = SHAPES[key];
+
+            const options = new Set([shape.sides]);
+            while(options.size < 4) {
+                let fake = shape.sides + getRandomInt(-2, 3);
+                if (fake >= 0 && fake !== shape.sides) options.add(fake);
+            }
+
+            return {
+                category: '多邊形邊數特徵',
+                prompt: `<span class="inline-block whitespace-nowrap text-amber-600">【${shape.name}】</span>一共有多少條邊？`,
+                visual: `<svg width="85" height="85" viewBox="0 0 100 100" class="drop-shadow-md">${shape.svg}</svg>`,
+                answer: shape.sides,
+                options: shuffleArray([...options]),
+                renderOption: (opt) => `<span class="text-2xl font-black">${opt} 條</span>`
+            };
+        }
+
+        function generateMixedCounting() {
+            const targetKey = ['triangle', 'circle', 'square'][getRandomInt(0, 2)];
+            const targetShape = SHAPES[targetKey];
+            const targetCount = getRandomInt(3, 6);
+
+            const distractorKeys = Object.keys(SHAPES).filter(k => k !== targetKey);
+            let gridItems = [];
+            for (let i = 0; i < targetCount; i++) {
+                gridItems.push(targetShape.svg);
+            }
+            const distractorCount = getRandomInt(2, 4);
+            for (let i = 0; i < distractorCount; i++) {
+                let randomDist = SHAPES[distractorKeys[getRandomInt(0, distractorKeys.length - 1)]].svg;
+                gridItems.push(randomDist);
+            }
+            gridItems = shuffleArray(gridItems);
+
+            const options = new Set([targetCount]);
+            while (options.size < 4) {
+                let fake = targetCount + getRandomInt(-2, 2);
+                if (fake > 0 && fake !== targetCount) options.add(fake);
+            }
+
+            const gridSVG = gridItems.map(svg => `<div class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center p-0.5"><svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-sm">${svg}</svg></div>`).join('');
+
+            return {
+                category: '混合圖形數數',
+                prompt: `圖中一共有多少個<span class="inline-block whitespace-nowrap text-amber-600">【${targetShape.name}】</span>？`,
+                visual: `<div class="grid grid-cols-4 gap-2 bg-amber-50 p-3 rounded-2xl border border-amber-200 max-w-xs">${gridSVG}</div>`,
+                answer: targetCount,
+                options: shuffleArray([...options]),
+                renderOption: (opt) => `<span class="text-3xl font-black">${opt}</span>`
+            };
+        }
+
+        function startGame() {
+            initAudio();
+            score = 0;
+            combo = 0;
+            maxCombo = 0;
+            correctAnswers = 0;
+            totalQuestions = 0;
+            timeLeft = GAME_DURATION;
+            isAnswering = false;
+
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            document.getElementById('gameScreen').classList.add('flex');
+
+            updateHUD();
+            nextQuestion();
+
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            document.getElementById('timerText').innerText = `${timeLeft}s`;
+            
+            const pct = (timeLeft / GAME_DURATION) * 100;
+            const timerBar = document.getElementById('timerBar');
+            timerBar.style.width = `${pct}%`;
+
+            if (timeLeft <= 10) {
+                timerBar.classList.add('animate-pulse');
+            } else {
+                timerBar.classList.remove('animate-pulse');
+            }
+
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestion = generateQuestion();
+
+            document.getElementById('questionCategory').innerText = currentQuestion.category;
+            document.getElementById('questionPrompt').innerHTML = currentQuestion.prompt;
+            document.getElementById('visualArea').innerHTML = currentQuestion.visual;
+
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = '';
+
+            currentQuestion.options.forEach((opt) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `btn-kids btn-option p-4 bg-white hover:bg-amber-50 active:bg-amber-100 rounded-3xl border-4 border-amber-300 text-slate-800 flex items-center justify-center min-h-[80px] w-full transition-all`;
+                btn.dataset.optionValue = opt;
+                btn.innerHTML = currentQuestion.renderOption(opt);
+                btn.onclick = () => checkAnswer(opt, btn);
+                grid.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedOpt, clickedBtn) {
+            if (isAnswering) return;
+            isAnswering = true;
+            totalQuestions++;
+
+            const isCorrect = (selectedOpt === currentQuestion.answer);
+
+            // Highlight buttons for visual feedback
+            const allBtns = document.querySelectorAll('#optionsGrid button');
+            allBtns.forEach(btn => {
+                btn.disabled = true;
+                if (btn.dataset.optionValue == currentQuestion.answer) {
+                    btn.classList.add('bg-emerald-100', 'border-emerald-500', 'ring-4', 'ring-emerald-300');
+                }
+            });
+
+            if (isCorrect) {
+                correctAnswers++;
+                combo++;
+                if (combo > maxCombo) maxCombo = combo;
+
+                const pts = 10 + Math.min(combo * 2, 20);
+                score += pts;
+
+                if (combo >= 3) {
+                    playSound('combo');
+                } else {
+                    playSound('correct');
+                }
+
+                showFeedback(`✨ 太棒了！`, `+${pts} 分`, 'text-emerald-500', '🎉');
+            } else {
+                combo = 0;
+                playSound('wrong');
+                if (clickedBtn) {
+                    clickedBtn.classList.add('bg-rose-100', 'border-rose-500', 'ring-4', 'ring-rose-300');
+                }
+                
+                let ansText = currentQuestion.answer;
+                if (SHAPES[ansText]) ansText = SHAPES[ansText].name;
+                showFeedback('❌ 再加油！', `正確答案是：${ansText}`, 'text-rose-500', '💪');
+            }
+
+            updateHUD();
+
+            // Display feedback overlay for 900ms
+            setTimeout(() => {
+                hideFeedback();
+                isAnswering = false;
+                nextQuestion();
+            }, 900);
+        }
+
+        function showFeedback(title, subtext, textColorClass, emoji) {
+            const overlay = document.getElementById('feedbackOverlay');
+            const feedbackText = document.getElementById('feedbackText');
+            const feedbackSubtext = document.getElementById('feedbackSubtext');
+            const feedbackEmoji = document.getElementById('feedbackEmoji');
+
+            feedbackText.innerText = title;
+            feedbackText.className = `font-black text-3xl md:text-4xl ${textColorClass}`;
+            if (feedbackSubtext) {
+                feedbackSubtext.innerText = subtext || '';
+            }
+            feedbackEmoji.innerText = emoji;
+            overlay.style.opacity = '1';
+        }
+
+        function hideFeedback() {
+            const overlay = document.getElementById('feedbackOverlay');
+            overlay.style.opacity = '0';
+        }
+
+        function updateHUD() {
+            document.getElementById('scoreDisplay').innerText = score;
+
+            const comboBadge = document.getElementById('comboBadge');
+            if (combo >= 2) {
+                comboBadge.classList.remove('hidden');
+                comboBadge.classList.add('flex');
+                document.getElementById('comboText').innerText = `🔥 x${combo}`;
+            } else {
+                comboBadge.classList.add('hidden');
+                comboBadge.classList.remove('flex');
+            }
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            playSound('gameover');
+
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('flex');
+            document.getElementById('resultScreen').classList.remove('hidden');
+
+            const accuracy = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('finalCorrect').innerText = `${correctAnswers} / ${totalQuestions}`;
+            document.getElementById('finalMaxCombo').innerText = `${maxCombo} 次`;
+            document.getElementById('finalAccuracy').innerText = `${accuracy}%`;
+
+            let stars = '⭐';
+            let title = '繼續努力！再試一次！';
+            if (score >= 120 || correctAnswers >= 10) {
+                stars = '⭐⭐⭐';
+                title = '🏆 超級數學小大師！';
+                triggerConfetti();
+            } else if (score >= 60 || correctAnswers >= 5) {
+                stars = '⭐⭐';
+                title = '🎉 表現得非常好！';
+                triggerConfetti();
+            }
+
+            document.getElementById('starRating').innerText = stars;
+            document.getElementById('resultTitle').innerText = title;
+        }
+
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 80,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        function backToMenu() {
+            if (timerInterval) clearInterval(timerInterval);
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('flex');
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
