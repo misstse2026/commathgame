@@ -122,7 +122,7 @@
                     <span class="text-5xl">🦁</span>
                     <span class="text-2xl font-black">小二 及 小三組</span>
                     <span class="text-xs font-bold bg-white/80 px-3 py-1.5 rounded-xl text-sky-900 border border-sky-300 shadow-sm">
-                        20以內加減填空 • 連加法與圖像分組 • 多邊形特徵
+                        20以內加減填空 • 1-9基礎乘法口訣 • 連加與圖像分組
                     </span>
                 </button>
             </div>
@@ -396,9 +396,11 @@
                 }
             } else {
                 // P2 & P3 Questions
-                if (typeChoice < 0.35) {
+                if (typeChoice < 0.25) {
                     return generateAdvancedMath();
-                } else if (typeChoice < 0.65) {
+                } else if (typeChoice < 0.50) {
+                    return generateSimpleMultiplication();
+                } else if (typeChoice < 0.70) {
                     return generateRepeatedAddition();
                 } else if (typeChoice < 0.85) {
                     return generateShapeSidesQuestion(['triangle', 'square', 'rectangle', 'pentagon', 'hexagon']);
@@ -479,6 +481,27 @@
                 category: '進階加減與填空',
                 prompt: `<span class="text-3xl md:text-4xl font-black text-slate-800">${promptText}</span>`,
                 visual: `<div class="text-slate-400 font-extrabold text-sm">請選出正確的算式解答：</div>`,
+                answer: ans,
+                options: shuffleArray([...options]),
+                renderOption: (opt) => `<span class="text-3xl font-black">${opt}</span>`
+            };
+        }
+
+        function generateSimpleMultiplication() {
+            const n1 = getRandomInt(1, 9);
+            const n2 = getRandomInt(1, 9);
+            const ans = n1 * n2;
+
+            const options = new Set([ans]);
+            while(options.size < 4) {
+                let fake = ans + getRandomInt(-5, 5);
+                if (fake > 0 && fake !== ans) options.add(fake);
+            }
+
+            return {
+                category: '1-9 基礎乘法口訣',
+                prompt: `<span class="text-3xl md:text-4xl font-black text-slate-800">${n1} × ${n2} = <span class="text-amber-500">?</span></span>`,
+                visual: `<div class="text-slate-500 font-extrabold text-sm">算算看，乘積是多少？</div>`,
                 answer: ans,
                 options: shuffleArray([...options]),
                 renderOption: (opt) => `<span class="text-3xl font-black">${opt}</span>`
